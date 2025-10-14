@@ -170,7 +170,7 @@ export function LoginForm({
                   <div className="grid gap-2">
                     {wallets.map((wallet) => (
                       <Button
-                        key={`${wallet.uuid}-${wallet.name}`}
+                        key={wallet.uuid}
                         type="button"
                         variant={
                           selectedWallet?.uuid === wallet.uuid

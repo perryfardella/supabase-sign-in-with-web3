@@ -23,17 +23,21 @@ export interface DetectedWallet {
 // Detect available Ethereum wallets using EIP-6963 standard
 export function detectWallets(): Promise<DetectedWallet[]> {
   return new Promise((resolve) => {
-    const wallets: DetectedWallet[] = [];
+    const walletMap = new Map<string, DetectedWallet>();
 
     // Listen for EIP-6963 wallet announcements
     const handleAnnouncement = (event: CustomEvent<EIP6963ProviderDetail>) => {
       const { info, provider } = event.detail;
-      wallets.push({
-        name: info.name,
-        icon: info.icon,
-        provider,
-        uuid: info.uuid,
-      });
+
+      // Use UUID as key to prevent duplicates
+      if (!walletMap.has(info.uuid)) {
+        walletMap.set(info.uuid, {
+          name: info.name,
+          icon: info.icon,
+          provider,
+          uuid: info.uuid,
+        });
+      }
     };
 
     window.addEventListener(
@@ -53,11 +57,11 @@ export function detectWallets(): Promise<DetectedWallet[]> {
 
       // Fallback to window.ethereum if no EIP-6963 wallets found
       if (
-        wallets.length === 0 &&
+        walletMap.size === 0 &&
         typeof window !== "undefined" &&
         window.ethereum
       ) {
-        wallets.push({
+        walletMap.set("legacy-ethereum", {
           name: "Ethereum Wallet",
           icon: "", // No icon for legacy detection
           provider: window.ethereum,
@@ -65,7 +69,8 @@ export function detectWallets(): Promise<DetectedWallet[]> {
         });
       }
 
-      resolve(wallets);
+      // Convert Map to array
+      resolve(Array.from(walletMap.values()));
     }, 100);
   });
 }
