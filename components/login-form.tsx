@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   detectWallets,
   signInWithEthereum,
@@ -184,10 +185,13 @@ export function LoginForm({
                         )}
                       >
                         {wallet.icon && (
-                          <img
+                          <Image
                             src={wallet.icon}
                             alt={wallet.name}
-                            className="w-6 h-6 rounded"
+                            width={24}
+                            height={24}
+                            className="rounded"
+                            unoptimized
                           />
                         )}
                         <span className="font-medium">{wallet.name}</span>
