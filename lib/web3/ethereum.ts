@@ -163,6 +163,7 @@ export async function getWalletInfo(provider: any) {
       isConnected: true,
     };
   } catch (error) {
+    console.error("Error getting wallet info:", error);
     return null;
   }
 }

@@ -44,11 +44,6 @@ export default async function ProtectedPage() {
   console.log("Extracted wallet address:", walletAddress);
   console.log("Extracted chain ID:", chainId);
 
-  // Also get Web3 identity information as fallback
-  const web3Identity = user.identities?.find(
-    (identity) => identity.provider === "web3"
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
       <div className="max-w-2xl mx-auto pt-8">
@@ -89,8 +84,8 @@ export default async function ProtectedPage() {
                     <div>
                       <div>Not available</div>
                       <div className="text-xs text-red-500 mt-1">
-                        Debug: walletAddress = "{String(walletAddress)}",
-                        customClaims = {customClaims ? "exists" : "null"}
+                        {`Debug: walletAddress = ${String(walletAddress)},
+                        customClaims = ${customClaims ? "exists" : "null"}`}
                       </div>
                     </div>
                   )}
@@ -219,7 +214,9 @@ export default async function ProtectedPage() {
                           {identity.provider}
                         </span>
                         <span className="text-xs text-slate-500">
-                          {new Date(identity.created_at).toLocaleDateString()}
+                          {identity.created_at
+                            ? new Date(identity.created_at).toLocaleDateString()
+                            : "Never"}
                         </span>
                       </div>
                       {identity.identity_data && (

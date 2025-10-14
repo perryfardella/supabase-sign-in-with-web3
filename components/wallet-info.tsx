@@ -117,8 +117,9 @@ export function WalletInfo() {
               <div>
                 <div>Not available</div>
                 <div className="text-xs text-red-500 mt-1">
-                  Debug: address = "{String(walletData?.address)}", rawClaims ={" "}
-                  {walletData?.rawClaims ? "exists" : "null"}
+                  {`Debug: address = ${String(
+                    walletData?.address
+                  )}, rawClaims = ${walletData?.rawClaims ? "exists" : "null"}`}
                 </div>
               </div>
             )}

@@ -165,23 +165,19 @@ export function LoginForm({
               {wallets.length > 1 && (
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium">
-                    Choose a wallet:
+                    Choose a wallet provider:
                   </label>
                   <div className="grid gap-2">
                     {wallets.map((wallet) => (
                       <Button
                         key={wallet.uuid}
                         type="button"
-                        variant={
-                          selectedWallet?.uuid === wallet.uuid
-                            ? "default"
-                            : "outline"
-                        }
+                        variant="outline"
                         onClick={() => setSelectedWallet(wallet)}
                         className={cn(
                           "justify-start h-auto py-3",
                           selectedWallet?.uuid === wallet.uuid &&
-                            "ring-2 ring-primary ring-offset-2"
+                            "ring-2 ring-primary/20 bg-accent"
                         )}
                       >
                         {wallet.icon && (
@@ -211,6 +207,8 @@ export function LoginForm({
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     Connecting...
                   </div>
+                ) : wallets.length > 1 && !selectedWallet ? (
+                  "Select a wallet provider"
                 ) : (
                   `Connect ${
                     selectedWallet?.name || wallets[0]?.name || "Wallet"
