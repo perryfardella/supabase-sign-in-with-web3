@@ -11,9 +11,19 @@ import {
 } from "@/components/ui/card";
 import { CopyButton } from "@/components/copy-button";
 import { formatAddress, getChainName } from "@/lib/web3/ethereum";
+import type { Web3CustomClaims } from "@/lib/web3/types";
+
+interface WalletData {
+  address: string;
+  chainId: string | null;
+  statement: string;
+  domain: string;
+  chain: string;
+  rawClaims: Web3CustomClaims;
+}
 
 export function WalletInfo() {
-  const [walletData, setWalletData] = useState<any>(null);
+  const [walletData, setWalletData] = useState<WalletData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,21 +54,25 @@ export function WalletInfo() {
           claimsData?.claims?.user_metadata?.custom_claims
         );
 
-        const customClaims = claimsData?.claims?.user_metadata?.custom_claims;
+        const customClaims = claimsData?.claims?.user_metadata
+          ?.custom_claims as Web3CustomClaims | undefined;
+
+        if (!customClaims) {
+          throw new Error("No Web3 claims found");
+        }
 
         setWalletData({
-          address: customClaims?.address,
-          chainId: customClaims?.network
-            ? `0x${parseInt(customClaims.network).toString(16)}`
-            : null,
-          statement: customClaims?.statement,
-          domain: customClaims?.domain,
-          chain: customClaims?.chain,
+          address: customClaims.address,
+          chainId: `0x${parseInt(customClaims.network).toString(16)}`,
+          statement: customClaims.statement,
+          domain: customClaims.domain,
+          chain: customClaims.chain,
           rawClaims: customClaims,
         });
-      } catch (err: any) {
+      } catch (err) {
         console.error("Error fetching wallet info:", err);
-        setError(err.message);
+        const message = err instanceof Error ? err.message : "Unknown error";
+        setError(message);
       } finally {
         setLoading(false);
       }

@@ -1,4 +1,9 @@
 import { createClient } from "@/lib/supabase/client";
+import type {
+  EthereumProvider,
+  SupabaseAuthResponse,
+  SupabaseAuthError,
+} from "./types";
 
 // EIP-6963 wallet discovery types
 export interface EIP6963ProviderInfo {
@@ -10,13 +15,13 @@ export interface EIP6963ProviderInfo {
 
 export interface EIP6963ProviderDetail {
   info: EIP6963ProviderInfo;
-  provider: any;
+  provider: EthereumProvider;
 }
 
 export interface DetectedWallet {
   name: string;
   icon: string;
-  provider: any;
+  provider: EthereumProvider;
   uuid: string;
 }
 
@@ -76,47 +81,59 @@ export function detectWallets(): Promise<DetectedWallet[]> {
 }
 
 // Connect to a specific wallet
-export async function connectWallet(provider: any): Promise<string[]> {
+export async function connectWallet(
+  provider: EthereumProvider
+): Promise<string[]> {
   if (!provider) {
     throw new Error("No wallet provider available");
   }
 
   try {
     // Request account access
-    const accounts = await provider.request({
+    const accounts = (await provider.request({
       method: "eth_requestAccounts",
-    });
+    })) as string[];
 
     if (!accounts || accounts.length === 0) {
       throw new Error("No accounts returned from wallet");
     }
 
     return accounts;
-  } catch (error: any) {
-    if (error.code === 4001) {
+  } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === 4001
+    ) {
       throw new Error("User rejected the connection request");
     }
-    throw new Error(`Failed to connect wallet: ${error.message}`);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to connect wallet: ${message}`);
   }
 }
 
 // Get the current chain ID
-export async function getChainId(provider: any): Promise<string> {
+export async function getChainId(provider: EthereumProvider): Promise<string> {
   try {
-    const chainId = await provider.request({
+    const chainId = (await provider.request({
       method: "eth_chainId",
-    });
+    })) as string;
     return chainId;
-  } catch (error: any) {
-    throw new Error(`Failed to get chain ID: ${error.message}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to get chain ID: ${message}`);
   }
 }
 
 // Sign in with Web3 using Supabase
 export async function signInWithEthereum(
-  provider: any,
+  provider: EthereumProvider,
   statement?: string
-): Promise<{ data: any; error: any }> {
+): Promise<{
+  data: SupabaseAuthResponse | null;
+  error: SupabaseAuthError | null;
+}> {
   const supabase = createClient();
 
   try {
@@ -130,26 +147,28 @@ export async function signInWithEthereum(
     const { data, error } = await supabase.auth.signInWithWeb3({
       chain: "ethereum",
       statement: statement || "Sign in to access your account",
-      wallet: provider,
+      wallet: provider as never, // Supabase's type is stricter, but our provider is compatible
     });
 
     return { data, error };
-  } catch (error: any) {
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to sign in with Ethereum wallet";
     return {
       data: null,
-      error: {
-        message: error.message || "Failed to sign in with Ethereum wallet",
-      },
+      error: { message },
     };
   }
 }
 
 // Check if user is connected and get account info
-export async function getWalletInfo(provider: any) {
+export async function getWalletInfo(provider: EthereumProvider) {
   try {
-    const accounts = await provider.request({
+    const accounts = (await provider.request({
       method: "eth_accounts",
-    });
+    })) as string[];
 
     if (!accounts || accounts.length === 0) {
       return null;
