@@ -9,7 +9,7 @@ export default function Home() {
             Web3 Authentication
           </h1>
           <p className="text-slate-600 dark:text-slate-400">
-            Connect your Ethereum wallet to get started
+            Connect your Ethereum or Solana wallet to get started
           </p>
         </div>
         <LoginForm />

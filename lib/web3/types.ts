@@ -40,6 +40,42 @@ export interface EthereumProvider {
   isWalletConnect?: boolean;
 }
 
+// Solana Provider interface
+export interface SolanaProvider {
+  publicKey: { toBase58(): string } | null;
+  isConnected: boolean;
+  connect(): Promise<{ publicKey: { toBase58(): string } }>;
+  disconnect(): Promise<void>;
+  signMessage(
+    message: Uint8Array,
+    display?: string
+  ): Promise<{ signature: Uint8Array }>;
+  isPhantom?: boolean;
+  isBraveWallet?: boolean;
+  isSolflare?: boolean;
+  isBackpack?: boolean;
+}
+
+// Union type for all wallet providers
+export type WalletProvider = EthereumProvider | SolanaProvider;
+
+// Wallet type discriminator
+export type WalletType = "ethereum" | "solana";
+
+// Type guard for Ethereum providers
+export function isEthereumProvider(
+  provider: WalletProvider
+): provider is EthereumProvider {
+  return "request" in provider;
+}
+
+// Type guard for Solana providers
+export function isSolanaProvider(
+  provider: WalletProvider
+): provider is SolanaProvider {
+  return "signMessage" in provider && "publicKey" in provider;
+}
+
 // Supabase Auth types
 export interface SupabaseUser {
   id: string;
@@ -114,13 +150,17 @@ export interface SupabaseJWTClaims {
   is_anonymous: boolean;
 }
 
-// Extend the Window interface to include Ethereum providers
+// Extend the Window interface to include wallet providers
 declare global {
   interface Window {
+    // Ethereum providers
     ethereum?: EthereumProvider;
-    // Other common wallet providers (for Solana, future use)
-    braveSolana?: EthereumProvider;
-    phantom?: EthereumProvider;
+    // Solana providers
+    solana?: SolanaProvider;
+    phantom?: { solana?: SolanaProvider };
+    solflare?: SolanaProvider;
+    backpack?: SolanaProvider;
+    braveSolana?: SolanaProvider;
   }
 }
 

@@ -10,7 +10,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CopyButton } from "@/components/copy-button";
-import { formatAddress, getChainName } from "@/lib/web3/ethereum";
+import {
+  formatAddress,
+  getNetworkName,
+  getBlockchainSymbol,
+  getBlockchainName,
+} from "@/lib/web3/chains";
 import type { Web3CustomClaims } from "@/lib/web3/types";
 
 interface WalletData {
@@ -61,12 +66,18 @@ export function WalletInfo() {
           throw new Error("No Web3 claims found");
         }
 
+        const chain = customClaims.chain || "ethereum";
+        const chainId =
+          chain === "ethereum"
+            ? `0x${parseInt(customClaims.network).toString(16)}`
+            : customClaims.network;
+
         setWalletData({
           address: customClaims.address,
-          chainId: `0x${parseInt(customClaims.network).toString(16)}`,
+          chainId,
           statement: customClaims.statement,
           domain: customClaims.domain,
-          chain: customClaims.chain,
+          chain,
           rawClaims: customClaims,
         });
       } catch (err) {
@@ -111,10 +122,15 @@ export function WalletInfo() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+          <span className="text-2xl">
+            {walletData ? getBlockchainSymbol(walletData.chain) : "🔗"}
+          </span>
           Connected Wallet (Client-Side)
         </CardTitle>
-        <CardDescription>Your Ethereum wallet information</CardDescription>
+        <CardDescription>
+          Your {walletData ? getBlockchainName(walletData.chain) : "Web3"}{" "}
+          wallet information
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
@@ -124,18 +140,17 @@ export function WalletInfo() {
           <div className="mt-1 p-3 bg-slate-100 dark:bg-slate-800 rounded-md font-mono text-sm">
             {walletData?.address ? (
               <div className="flex items-center justify-between">
-                <span>{formatAddress(walletData.address, 6)}</span>
+                <span>
+                  {formatAddress(
+                    walletData.address,
+                    walletData.chain === "ethereum" ? "ethereum" : "solana",
+                    6
+                  )}
+                </span>
                 <CopyButton text={walletData.address} />
               </div>
             ) : (
-              <div>
-                <div>Not available</div>
-                <div className="text-xs text-red-500 mt-1">
-                  {`Debug: address = ${String(
-                    walletData?.address
-                  )}, rawClaims = ${walletData?.rawClaims ? "exists" : "null"}`}
-                </div>
-              </div>
+              <div>Not available</div>
             )}
           </div>
         </div>
@@ -146,7 +161,7 @@ export function WalletInfo() {
               Network
             </label>
             <div className="mt-1 p-3 bg-slate-100 dark:bg-slate-800 rounded-md text-sm">
-              {getChainName(walletData.chainId)}
+              {getNetworkName(walletData.chain, walletData.chainId)}
             </div>
           </div>
         )}

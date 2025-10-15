@@ -10,7 +10,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatAddress, getChainName } from "@/lib/web3/ethereum";
+import {
+  formatAddress,
+  getNetworkName,
+  getBlockchainSymbol,
+  getBlockchainName,
+} from "@/lib/web3/chains";
 
 export default async function ProtectedPage() {
   const supabase = await createClient();
@@ -33,16 +38,19 @@ export default async function ProtectedPage() {
 
   // Extract Web3 information from custom claims
   const walletAddress = customClaims?.address;
-  const chainId = customClaims?.network
-    ? `0x${parseInt(customClaims.network).toString(16)}`
-    : null;
+  const chain = (customClaims?.chain as string) || "ethereum";
+  const network = customClaims?.network as string;
+  const chainId =
+    chain === "ethereum" && network
+      ? `0x${parseInt(network).toString(16)}`
+      : network;
   const statement = customClaims?.statement;
   const domain = customClaims?.domain;
-  const chain = customClaims?.chain;
 
   // Debug the extracted values
   console.log("Extracted wallet address:", walletAddress);
-  console.log("Extracted chain ID:", chainId);
+  console.log("Extracted chain:", chain);
+  console.log("Extracted network:", network);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
@@ -62,11 +70,11 @@ export default async function ProtectedPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
+                <span className="text-2xl">{getBlockchainSymbol(chain)}</span>
                 Connected Wallet (Server-Side)
               </CardTitle>
               <CardDescription>
-                Your Ethereum wallet information
+                Your {getBlockchainName(chain)} wallet information
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -77,28 +85,28 @@ export default async function ProtectedPage() {
                 <div className="mt-1 p-3 bg-slate-100 dark:bg-slate-800 rounded-md font-mono text-sm">
                   {walletAddress ? (
                     <div className="flex items-center justify-between">
-                      <span>{formatAddress(walletAddress, 6)}</span>
+                      <span>
+                        {formatAddress(
+                          walletAddress,
+                          chain === "ethereum" ? "ethereum" : "solana",
+                          6
+                        )}
+                      </span>
                       <CopyButton text={walletAddress} />
                     </div>
                   ) : (
-                    <div>
-                      <div>Not available</div>
-                      <div className="text-xs text-red-500 mt-1">
-                        {`Debug: walletAddress = ${String(walletAddress)},
-                        customClaims = ${customClaims ? "exists" : "null"}`}
-                      </div>
-                    </div>
+                    <div>Not available</div>
                   )}
                 </div>
               </div>
 
-              {chainId && (
+              {network && (
                 <div>
                   <label className="text-sm font-medium text-slate-600 dark:text-slate-400">
                     Network
                   </label>
                   <div className="mt-1 p-3 bg-slate-100 dark:bg-slate-800 rounded-md text-sm">
-                    {getChainName(chainId)}
+                    {getNetworkName(chain, chainId || network)}
                   </div>
                 </div>
               )}
